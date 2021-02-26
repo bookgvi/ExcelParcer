@@ -11,7 +11,7 @@ import java.io.InputStream;
 import java.util.*;
 
 public class Parser {
-    private static final Map<String, ArrayList<String>> resultMap = new HashMap<>();
+    private static final Map<String, Set<String>> resultMap = new HashMap<>();
 
     public static void parse(String fileName) {
         InputStream inputStream = null;
@@ -46,9 +46,9 @@ public class Parser {
     }
 
     private static void createMap(String key, String val) {
-        ArrayList<String> res = resultMap.get(key);
+        Set<String> res = resultMap.get(key);
         if (res == null) {
-            ArrayList<String> newArray = new ArrayList<>();
+            Set<String> newArray = new HashSet<String>();
 //            newArray.add(val);
             resultMap.put(key, newArray);
         } else if (val != null) {
@@ -59,7 +59,7 @@ public class Parser {
     private static String serializeMap() {
         Gson gson = new Gson();
         return gson.toJson(Parser.resultMap)
-                .replace(":", "-> new HashSet<String>()") // изврат для GOSU
+                .replace(":", "-> new HashSet<String>()")
                 .replace("[", "{")
                 .replace("]", "}\n");
     }
