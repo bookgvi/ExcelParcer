@@ -59,9 +59,9 @@ public class Parser {
     private static String serializeMap() {
         Gson gson = new Gson();
         return gson.toJson(Parser.resultMap)
-                .replace(":", "->")
+                .replace(":", "-> new HashSet<String>()") // изврат для GOSU
                 .replace("[", "{")
-                .replace("]", "}");
+                .replace("]", "}\n");
     }
 
     private static void saveToFile(String str) {
