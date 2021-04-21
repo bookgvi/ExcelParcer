@@ -62,14 +62,14 @@ public class ParserV2 {
     private static String serializeMap() {
         Gson gson = new Gson();
         return gson.toJson(ParserV2.resultMap)
-                .replace(":", " -> ")
-                .replace("[", "{")
-                .replace("],", "},\n")
-                .replace("]", "}\n");
+                .replace("\":", "\" -> ")
+                .replace("[", "new Data(")
+                .replace("],", "),\n")
+                .replace("]", ")\n");
     }
 
     private static void saveToFile(String str) {
-        String fileName = "/Users/bookgvi/Documents/GW_RGS/parse.gs";
+        String fileName = "/Users/bookgvi/Documents/GW_RGS/parse.txt";
         try (FileOutputStream fos = new FileOutputStream(fileName)) {
             fos.write(str.getBytes());
         } catch (IOException ex) {
