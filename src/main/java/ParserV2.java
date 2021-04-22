@@ -15,11 +15,11 @@ import java.util.*;
  * первая колонка во входящем xls-файле становится ключем хэшмап,
  * остальные добавляются в массив, который в свою очередь есть значеие этого хэшмапа
  * 2) Сериализация в GOSU hashmap к виду
- *              {"S25067700023153" -> {"12375","10001"}}
+ * {"S25067700023153" -> {"12375","10001"}}
  * 3) сохранение полученого файл parse.gs
- * */
+ */
 public class ParserV2 {
-    private static final Map<String, ArrayList<String>> resultMap = new HashMap<>();
+    private static final ArrayList<Data> resultMap = new ArrayList<>();
 
     public static void parse(String fileName) {
         InputStream inputStream = null;
@@ -32,7 +32,9 @@ public class ParserV2 {
         }
         XSSFSheet sheet = workBook.getSheetAt(0);
         Iterator<Row> it = sheet.iterator();
+        int count = 0;
         while (it.hasNext()) {
+            count++;
             Row row = it.next();
             Iterator<Cell> cells = row.iterator();
             String key = null;
@@ -49,23 +51,29 @@ public class ParserV2 {
             createMap(key, values);
         }
         saveToFile(serializeMap());
+        System.out.println(count);
+//        System.out.println(resultMap);
+        System.out.println(serializeMap());
     }
 
     private static void createMap(String key, ArrayList<String> values) {
-        ArrayList<String> res = resultMap.get(key);
-        if (res == null) {
-            ArrayList<String> newArray = new ArrayList<String>(values);
-            resultMap.put(key, newArray);
-        }
+        Data data = new Data(key.trim(), values.get(0).trim(), values.get(1).trim());
+        resultMap.add(data);
     }
 
     private static String serializeMap() {
         Gson gson = new Gson();
         return gson.toJson(ParserV2.resultMap)
-                .replace("\":", "\" -> ")
-                .replace("[", "new Data(")
-                .replace("],", "),\n")
-                .replace("]", ")\n");
+                .replace("[", "")
+                .replace("{\"prc\":", "new Data(")
+                .replace(",\"pcs\":", ", ")
+                .replace("\"ep\":", " ")
+                .replace("},", "),\n")
+                .replace("}", ")")
+//                .replace("]", "\n}");
+//                .replace("[", "new Data(")
+//                .replace("],", "),\n")
+                .replace("]", "");
     }
 
     private static void saveToFile(String str) {
@@ -74,6 +82,18 @@ public class ParserV2 {
             fos.write(str.getBytes());
         } catch (IOException ex) {
             ex.printStackTrace();
+        }
+    }
+
+    static class Data {
+        public String prc;
+        public String pcs;
+        public String ep;
+
+        Data(String prc, String pcs, String ep) {
+            this.prc = prc;
+            this.pcs = pcs;
+            this.ep = ep;
         }
     }
 }
