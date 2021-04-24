@@ -6,6 +6,10 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 1) Парсинг xls в HashMap<String, ArrayList<String>>
@@ -42,7 +46,7 @@ public class ScriptBuilder {
                 .replace(",\"_second\":", ", ")
                 .replace("\"_third\":", " ")
                 .replace("},", "),\n")
-                .replace("}", ")")
+                .replace("}", ")\n")
                 .replace("]", "");
     }
 
@@ -97,8 +101,22 @@ public class ScriptBuilder {
         }
 
         void buildScripts(String outFile) {
-            String scriptPart1 = getFromFile(scriptFilePart1);
-            String scriptPart2 = getFromFile(scriptFilePart2);
+            final int THREADS_COUNT = 2;
+            String scriptPart1;
+            String scriptPart2;
+            ExecutorService executorService = Executors.newFixedThreadPool(THREADS_COUNT);
+            CountDownLatch mainCDL = new CountDownLatch(2);
+            try {
+                scriptPart1 = executorService.submit(new FileLoaderThread(mainCDL, scriptFilePart1)).get();
+                scriptPart2 = executorService.submit(new FileLoaderThread(mainCDL, scriptFilePart2)).get();
+                mainCDL.await();
+            } catch (InterruptedException | ExecutionException ignored) {
+                scriptPart1 = getFromFile(scriptFilePart1);
+                scriptPart2 = getFromFile(scriptFilePart2);
+            } finally {
+                executorService.shutdown();
+            }
+
             final int CHUNK_SIZE = Math.min(MAX_CHUNK_SIZE, resultMap.size());
             int fileSubIndex = 1;
             String delimeter = "_";
@@ -124,6 +142,7 @@ public class ScriptBuilder {
         }
 
         private String getFromFile(String fileName) {
+
             StringBuilder result = new StringBuilder();
             try {
                 BufferedReader buffer = new BufferedReader(new InputStreamReader(new FileInputStream(fileName)));
