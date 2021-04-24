@@ -9,7 +9,7 @@ public class App {
         for (int fileNumber = 2; fileNumber <= 15; fileNumber++) {
             String inFile = baseFileName + fileNumber + inExt;
             String outFile = baseFileName + fileNumber;
-            ScriptBuilder.parse(inFile, outFile);
+            ScriptBuilder.newBuilder().parse(inFile).buildScripts(outFile);
         }
     }
 }
