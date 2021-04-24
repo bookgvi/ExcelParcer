@@ -1,5 +1,6 @@
 package ScriptBuilder;
 
+import Constants.FilesAndDirectories;
 import com.google.gson.Gson;
 
 import java.io.*;
@@ -9,19 +10,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * 1) Парсинг xls в HashMap<String, ArrayList<String>>
- * первая колонка во входящем xls-файле становится ключем хэшмап,
- * остальные добавляются в массив, который в свою очередь есть значеие этого хэшмапа
- * 2) Сериализация в GOSU hashmap к виду
- * {"S25067700023153" -> {"12375","10001"}}
- * 3) сохранение полученого файл parse.gs
- */
 public class ScriptBuilder {
     private final ArrayList<Data> resultMap = new ArrayList<>();
-    private final String directory = "/Users/bookgvi/Documents/GW_RGS/AgreportScript/";
-    private final String scriptFilePart1 = directory + "PCG-55820_link_agreport_pps_pcs_part1.gsp";
-    private final String scriptFilePart2 = directory + "PCG-55820_link_agreport_pps_pcs_part2.gsp";
 
     public ScriptBuilder() {}
 
@@ -76,12 +66,12 @@ public class ScriptBuilder {
             ExecutorService executorService = Executors.newFixedThreadPool(THREADS_COUNT);
             CountDownLatch mainCDL = new CountDownLatch(2);
             try {
-                scriptPart1 = executorService.submit(new FileLoaderThread(mainCDL, scriptFilePart1)).get();
-                scriptPart2 = executorService.submit(new FileLoaderThread(mainCDL, scriptFilePart2)).get();
+                scriptPart1 = executorService.submit(new FileLoaderThread(mainCDL, FilesAndDirectories.scriptFilePart1)).get();
+                scriptPart2 = executorService.submit(new FileLoaderThread(mainCDL, FilesAndDirectories.scriptFilePart2)).get();
                 mainCDL.await();
             } catch (InterruptedException | ExecutionException ignored) {
-                scriptPart1 = getFromFile(scriptFilePart1);
-                scriptPart2 = getFromFile(scriptFilePart2);
+                scriptPart1 = getFromFile(FilesAndDirectories.scriptFilePart1);
+                scriptPart2 = getFromFile(FilesAndDirectories.scriptFilePart2);
             } finally {
                 executorService.shutdown();
             }
