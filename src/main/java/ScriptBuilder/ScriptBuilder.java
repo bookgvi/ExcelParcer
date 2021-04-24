@@ -1,8 +1,6 @@
+package ScriptBuilder;
+
 import com.google.gson.Gson;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.*;
 import java.util.*;
@@ -25,15 +23,13 @@ public class ScriptBuilder {
     private final String scriptFilePart1 = directory + "PCG-55820_link_agreport_pps_pcs_part1.gsp";
     private final String scriptFilePart2 = directory + "PCG-55820_link_agreport_pps_pcs_part2.gsp";
 
+    public ScriptBuilder() {}
 
-    private ScriptBuilder() {
+    public Builder newBuilder() {
+        return new Builder();
     }
 
-    public static Builder newBuilder() {
-        return new ScriptBuilder().new Builder();
-    }
-
-    private void createMap(ArrayList<String> values) {
+    public void createMap(ArrayList<String> values) {
         Data data = new Data(values.get(0).trim(), values.get(1).trim(), values.get(2).trim());
         resultMap.add(data);
     }
@@ -62,37 +58,10 @@ public class ScriptBuilder {
         }
     }
 
-    class Builder {
+    public class Builder {
         private int MAX_CHUNK_SIZE = 666;
 
         private Builder() {
-        }
-
-        public Builder parse(String inFile) {
-            InputStream inputStream = null;
-            XSSFWorkbook workBook = null;
-            ArrayList<String> values = new ArrayList<>();
-            try {
-                inputStream = new FileInputStream(inFile);
-                workBook = new XSSFWorkbook(inputStream);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            XSSFSheet sheet = workBook.getSheetAt(0);
-            Iterator<Row> it = sheet.iterator();
-            int count = 0;
-            while (it.hasNext()) {
-                count++;
-                Row row = it.next();
-                Iterator<Cell> cells = row.iterator();
-                while (cells.hasNext()) {
-                    Cell cell = cells.next();
-                    values.add(cell.getStringCellValue());
-                }
-                ScriptBuilder.this.createMap(values);
-            }
-            System.out.println(count);
-            return this;
         }
 
         Builder setChunkSize(int chunkSize) {
@@ -100,7 +69,7 @@ public class ScriptBuilder {
             return this;
         }
 
-        void buildScripts(String outFile) {
+        public void buildScripts(String outFile) {
             final int THREADS_COUNT = 2;
             String scriptPart1;
             String scriptPart2;
