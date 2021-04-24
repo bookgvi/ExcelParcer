@@ -20,12 +20,16 @@ import java.util.*;
  */
 public class ParserV2 {
     private static final ArrayList<Data> resultMap = new ArrayList<>();
+    private static String _outFile;
+    private static String _inFile;
 
-    public static void parse(String fileName) {
+    public static void parse(String inFile, String outFile) {
+        _outFile = outFile;
+        _inFile = inFile;
         InputStream inputStream = null;
         XSSFWorkbook workBook = null;
         try {
-            inputStream = new FileInputStream(fileName);
+            inputStream = new FileInputStream(_inFile);
             workBook = new XSSFWorkbook(inputStream);
         } catch (IOException e) {
             e.printStackTrace();
@@ -77,8 +81,7 @@ public class ParserV2 {
     }
 
     private static void saveToFile(String str) {
-        String fileName = "/Users/bookgvi/Documents/GW_RGS/parse.txt";
-        try (FileOutputStream fos = new FileOutputStream(fileName)) {
+        try (FileOutputStream fos = new FileOutputStream(_outFile)) {
             fos.write(str.getBytes());
         } catch (IOException ex) {
             ex.printStackTrace();
