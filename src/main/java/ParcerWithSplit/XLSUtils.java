@@ -18,6 +18,7 @@ public class XLSUtils {
     private String _fileName;
     private XSSFWorkbook _xssfWorkbook;
     private XSSFSheet _xssFSheet;
+    private int _columnsCount = 3;
 
     public XLSUtils(String fileName) {
         _fileName = fileName;
@@ -31,14 +32,17 @@ public class XLSUtils {
     }
 
     public ArrayList<ArrayList<String>> parce(int columnsCount) {
+        _columnsCount = columnsCount;
         ArrayList<ArrayList<String>> result = new ArrayList<>();
         Iterator<Row> rowIterator = _xssFSheet.rowIterator();
         while (rowIterator.hasNext()) {
             ArrayList<String> rowList = new ArrayList<>();
             Row row = rowIterator.next();
             Iterator<Cell> cellIterator = row.iterator();
-            while (cellIterator.hasNext()) {
+            int cellNumber = 1;
+            while (cellIterator.hasNext() && cellNumber < columnsCount) {
                 Cell cell = cellIterator.next();
+                cellNumber = cell.getColumnIndex() + 1;
                 rowList.add(cell.getStringCellValue().trim());
             }
             result.add(rowList);
@@ -46,23 +50,22 @@ public class XLSUtils {
         return result;
     }
 
-    public void saveToXls(ArrayList<ArrayList<String>> data) {
-        XSSFSheet newSheet = _xssfWorkbook.getSheet("Modified");
-        newSheet = newSheet == null ? _xssfWorkbook.createSheet("Modified") : newSheet;
+    public void createNewSheet(ArrayList<ArrayList<String>> data) {
+        XSSFSheet newSheet = _xssfWorkbook.createSheet();
         List<Row> rowList = IntStream.range(0, data.size()).mapToObj(newSheet::createRow).collect(Collectors.toList());
         Iterator<Row> newRowIterator = rowList.iterator();
         int rowIndex = 0;
         while (newRowIterator.hasNext()) {
             int cellIndex = 0;
             Row row = newRowIterator.next();
-            List<Cell> cellList = IntStream.range(0, 3).mapToObj(row::createCell).collect(Collectors.toList());
+            rowIndex = row.getRowNum();
+            List<Cell> cellList = IntStream.range(0, _columnsCount).mapToObj(row::createCell).collect(Collectors.toList());
             Iterator<Cell> cellListIterator = cellList.iterator();
             while (cellListIterator.hasNext()) {
                 Cell cell = cellListIterator.next();
+                cellIndex = cell.getColumnIndex();
                 cell.setCellValue(data.get(rowIndex).get(cellIndex));
-                cellIndex++;
             }
-            rowIndex++;
         }
         saveToFile(newSheet);
     }
