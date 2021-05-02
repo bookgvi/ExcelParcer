@@ -1,11 +1,14 @@
 package ParcerWithSplit;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceArray;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class SerializeUtils {
     private final ArrayList<ArrayList<String>> _dataList;
@@ -44,42 +47,32 @@ public class SerializeUtils {
         return newDataList;
     }
 
-    public ArrayList<ArrayList<String>> splitToArraylistV2() {
-        final int defaultColumnsCount = 3;
-        return splitToArraylistV2(defaultColumnsCount);
-    }
-
-    public ArrayList<ArrayList<String>> splitToArraylistV2(int columnsCount) {
+    public ArrayList<ArrayList<String>> splitToArraylistV2(String delimiter) {
         ArrayList<ArrayList<String>> newDataList = new ArrayList<>();
-        IntStream.range(0, _dataList.size())
-                .forEach(index -> {
-                    ArrayList<String> nestedArrayList = _dataList.get(index);
-                    List<String[]> splitArrayHolder = this.splitString(columnsCount, nestedArrayList, "\\|");
-                    int maxSize = getMaxSizeOfArrays(splitArrayHolder);
-                    joinArray(splitArrayHolder, maxSize, newDataList);
-                });
+        _dataList.forEach(nestedArrayList -> {
+            Supplier<Stream<String[]>> splitArrayHolderStreamSupplier = splitString(nestedArrayList, delimiter);
+            int maxSize = getMaxSizeOfArrays(splitArrayHolderStreamSupplier.get());
+            joinToArray(splitArrayHolderStreamSupplier, maxSize, newDataList);
+        });
         return newDataList;
     }
 
-    private List<String[]> splitString(int columnsCount, ArrayList<String> arrayList, String delimeter) {
-        return IntStream.range(0, columnsCount)
-                .mapToObj(i -> arrayList.get(i).split(delimeter)).collect(Collectors.toList());
+    private Supplier<Stream<String[]>> splitString(ArrayList<String> arrayList, String delimiter) {
+        return () -> arrayList.stream().map(elt -> elt.split(delimiter));
     }
 
-    private int getMaxSizeOfArrays(List<String[]> streamWithArrays) {
-        List<Integer> listWithArrays = streamWithArrays.stream().map(arr -> arr.length).sorted().collect(Collectors.toList());
-        return listWithArrays.get(listWithArrays.size() - 1);
+    private int getMaxSizeOfArrays(Stream<String[]> streamWithArrays) {
+        return streamWithArrays.mapToInt(arr -> arr.length).reduce(0, Math::max);
     }
 
-    private ArrayList<ArrayList<String>> joinArray(List<String[]> splitArrayHolder, int maxSize, ArrayList<ArrayList<String>> res) {
+    private ArrayList<ArrayList<String>> joinToArray(Supplier<Stream<String[]>> streamWithArraysSupplier, int maxSize, ArrayList<ArrayList<String>> res) {
         IntStream.range(0, maxSize).forEach(i -> {
-            ArrayList<String> tmpArr = new ArrayList<>();
-            splitArrayHolder.forEach(array -> {
-                if (array.length > i) tmpArr.add(array[i]);
-                else if (array.length == 1) tmpArr.add(array[0]);
-                else tmpArr.add("-");
-            });
-            res.add(tmpArr);
+            Stream<String[]> streamWithArrays = streamWithArraysSupplier.get();
+            res.add((ArrayList<String>) streamWithArrays.map(array -> {
+                if (array.length > i) return array[i];
+                else if (array.length == 1) return array[0];
+                return "-";
+            }).collect(Collectors.toList()));
         });
         return res;
     }

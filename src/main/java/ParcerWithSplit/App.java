@@ -10,7 +10,8 @@ public class App {
         XLSUtils xlsObj = new XLSUtils(fileName);
         ArrayList<ArrayList<String>> data = xlsObj.parce(3);
 //        ArrayList<ArrayList<String>> flatData = new SerializeUtils(data).splitToArraylistV1();
-        ArrayList<ArrayList<String>> flatData2 = new SerializeUtils(data).splitToArraylistV2();
+        final String splitDelimiter = "\\|";
+        ArrayList<ArrayList<String>> flatData2 = new SerializeUtils(data).splitToArraylistV2(splitDelimiter);
 //        xlsObj.createNewSheet(flatData);
         xlsObj.createNewSheet(flatData2);
     }
