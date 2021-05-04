@@ -21,54 +21,70 @@ public class DivideXlsSheet {
     private XSSFSheet _xssfSheet;
     private final ArrayList<List<Row>> groupsOfRows = new ArrayList<>();
 
-    DivideXlsSheet(String fileName) {
-        _fileName = fileName;
-        try {
-            _xssfWorkbook = new XSSFWorkbook(new FileInputStream(_fileName));
-            _xssfSheet = _xssfWorkbook.getSheetAt(0);
-        } catch (IOException exception) {
-            exception.printStackTrace();
+    private DivideXlsSheet() {
+    }
+
+    static Builder createBuilder() {
+        return new DivideXlsSheet().new Builder();
+    }
+
+
+    public class Builder {
+        private Builder() {
         }
-    }
 
-    public void splitWorkSheet() {
-        int defaultRecordsCount = 900;
-        splitWorkSheet(defaultRecordsCount);
-    }
-
-    public void splitWorkSheet(int recordsPerSheet) {
-        ArrayList<Row> rowsArrayList = com.google.common.collect.Lists.newArrayList(_xssfSheet.rowIterator());
-        for (List<Row> rowsChunk : com.google.common.collect.Iterables.partition(rowsArrayList, recordsPerSheet)) {
-            groupsOfRows.add(rowsChunk);
+        public Builder loadFile(String fileName) {
+            _fileName = fileName;
+            try {
+                _xssfWorkbook = new XSSFWorkbook(new FileInputStream(_fileName));
+                _xssfSheet = _xssfWorkbook.getSheetAt(0);
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
+            return this;
         }
-    }
 
-    public void saveGroupsOfCellIntoSheets() {
-        for(List<Row> rowsChunk: groupsOfRows) {
-            XSSFSheet newSheet = _xssfWorkbook.createSheet();
-            Iterator<Row> rowIterator = rowsChunk.iterator();
-            int rowIndex = 0;
-            while(rowIterator.hasNext()) {
-                Row row = rowIterator.next();
-                XSSFRow newRow = newSheet.createRow(rowIndex);
-                rowIndex++;
-                Iterator<Cell> cellIterator = row.cellIterator();
-                while(cellIterator.hasNext()) {
-                    Cell cell = cellIterator.next();
-                    XSSFCell newCell = newRow.createCell(cell.getColumnIndex());
-                    newCell.setCellValue(cell.getStringCellValue());
+        public Builder splitWorkSheet() {
+            int defaultRecordsCount = 900;
+            return splitWorkSheet(defaultRecordsCount);
+        }
+
+        public Builder splitWorkSheet(int recordsPerSheet) {
+            ArrayList<Row> rowsArrayList = com.google.common.collect.Lists.newArrayList(_xssfSheet.rowIterator());
+            for (List<Row> rowsChunk : com.google.common.collect.Iterables.partition(rowsArrayList, recordsPerSheet)) {
+                groupsOfRows.add(rowsChunk);
+            }
+            return this;
+        }
+
+        public Builder saveGroupsOfCellIntoSheets() {
+            for (List<Row> rowsChunk : groupsOfRows) {
+                XSSFSheet newSheet = _xssfWorkbook.createSheet();
+                Iterator<Row> rowIterator = rowsChunk.iterator();
+                int rowIndex = 0;
+                while (rowIterator.hasNext()) {
+                    Row row = rowIterator.next();
+                    XSSFRow newRow = newSheet.createRow(rowIndex);
+                    rowIndex++;
+                    Iterator<Cell> cellIterator = row.cellIterator();
+                    while (cellIterator.hasNext()) {
+                        Cell cell = cellIterator.next();
+                        XSSFCell newCell = newRow.createCell(cell.getColumnIndex());
+                        newCell.setCellValue(cell.getStringCellValue());
+                    }
                 }
             }
+            return this;
         }
-        saveToFile();
-    }
 
-    private void saveToFile() {
-        try {
-            FileOutputStream fileOutputStream = new FileOutputStream(_fileName);
-            _xssfWorkbook.write(fileOutputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
+        public void saveFile() {
+            try {
+                FileOutputStream fileOutputStream = new FileOutputStream(_fileName);
+                _xssfWorkbook.write(fileOutputStream);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+
     }
 }
